@@ -1,5 +1,7 @@
 import os
+import sqlite3
 import sys
+import random
 import pygame
 
 pygame.init()
@@ -198,10 +200,14 @@ def end_screen():
         pygame.display.flip()
         clock2.tick(FPS)
 
+
 start_screen()
 pygame.init()
 running = True
 x, y = 0, 0
+
+MYEVENTTYPE = pygame.USEREVENT + 1
+pygame.time.set_timer(MYEVENTTYPE, 500)
 
 if c != 0:
     Chel.chel_image = load_image("good_cat.png")
@@ -209,15 +215,41 @@ if c != 0:
 end_game = 0
 chel = Chel()
 
+# теперь запустим основную игру
 while running:
     pygame.mouse.set_visible(True)
     for event in pygame.event.get():
         coords = pygame.mouse.get_pos()
-        if event.type == pygame.QUIT:
+        if c == 0:
+            if 470 <= coords[1] <= 500:
+                chel.rect.x, chel.rect.y = pygame.mouse.get_pos()
+                pygame.mouse.set_visible(False)
+            elif coords[1] < 470:
+                chel.rect.x, chel.rect.y = pygame.mouse.get_pos()[0], 470
+                pygame.mouse.set_visible(False)
+            elif coords[1] > 500:
+                chel.rect.x, chel.rect.y = pygame.mouse.get_pos()[0], 500
+                pygame.mouse.set_visible(False)
+        else:
+            if 420 <= coords[1] <= 460:
+                chel.rect.x, chel.rect.y = pygame.mouse.get_pos()
+                pygame.mouse.set_visible(False)
+            elif coords[1] < 420:
+                chel.rect.x, chel.rect.y = pygame.mouse.get_pos()[0], 420
+                pygame.mouse.set_visible(False)
+            elif coords[1] > 460:
+                chel.rect.x, chel.rect.y = pygame.mouse.get_pos()[0], 460
+                pygame.mouse.set_visible(False)
+        if event.type == MYEVENTTYPE:
+            GFood((random.choice(range(0, 1440)), random.choice(range(0, 5))))
+            BFood((random.choice(range(0, 1440)), random.choice(range(0, 5))))
+            end_game += 1
+        if event.type == pygame.QUIT or end_game == 100:
             running = False
     fon = pygame.transform.scale(load_image('main_background.jpg'), (1440, 800))
     screen.blit(fon, (0, 0))
     all_sprites.draw(screen)
     all_sprites.update()
     pygame.display.flip()
+end_screen()
 pygame.quit()
