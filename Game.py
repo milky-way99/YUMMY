@@ -47,6 +47,53 @@ c = 0
 fon = pygame.transform.scale(load_image('main_background.jpg'), (1440, 800))
 screen.blit(fon, (0, 0))
 
+
+def start_screen():
+    # запустим начальную заставку игры
+    global total_pers, total_food, c
+    # create the pygame clock
+    intro_text = ["",
+                  "Правила игры:",
+                  "Перед стартом нажмите либо на кошку либо на собаку в зависсимости от того кем вы хотите управлять",
+                  "После нажатия на персонажа, зажмите space",
+                  "У вас будет ровно 100 секунд, чтобы съесть как можно больше еды",
+                  "Не натыкайтесь на несъедобные предметы, иначе ваш скор уменьшится",
+                  "В конце игры вы получите заработанные очки",
+                  "Чтобы выйти из игры нажмите на крестик",
+                  "Но очтите, что игра не остановиться если вы ее свернете",
+                  "Удачи!!!"]
+
+    fon = pygame.transform.scale(load_image('fon.jpg'), (1440, 800))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                pass
+                return  # i
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if 0 <= event.pos[0] <= 720:
+                    GFood.food_image = load_image("bone-3.png")
+                    Chel.chel_image = load_image("dog.png")
+
+                else:
+                    c += 1
+                    total_pers = "cat.png"
+                    total_food = "bone-3.png"
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 all_sprites = pygame.sprite.Group()
 
 
@@ -108,6 +155,50 @@ class BFood(pygame.sprite.Sprite):
             BFood.bad_food += 1
 
 
+def end_screen():
+    # запустим конечную заставку игры
+    con = sqlite3.connect("base_yummy.db")
+    cur = con.cursor()
+    score_yes = cur.execute("SELECT score FROM users").fetchall()
+    base3 = [i[0] for i in score_yes]
+    cur.execute("SELECT login FROM users")
+    flag = False
+    for i in base3:
+        if i == login:
+            flag = True
+    if not flag:
+        tek_score = 0
+    # обновляем скор в базе данных
+    new_score = max(GFood.good_food - BFood.bad_food, tek_score)
+    cur.execute("""UPDATE users
+                    SET score = ? WHERE login LIKE ?""", (new_score, login))
+    con.commit()
+    intro_text = ["Game over",
+                  "СПАСИБО ЗА ИГРУ!!!",
+                  "ВАШ СКОР " + str(GFood.good_food - BFood.bad_food) + "/100"]
+
+    fon = pygame.transform.scale(load_image('fon.jpg'), (1440, 800))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+        pygame.mouse.set_visible(True)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return  # i
+        pygame.display.flip()
+        clock2.tick(FPS)
+
+start_screen()
 pygame.init()
 running = True
 x, y = 0, 0
