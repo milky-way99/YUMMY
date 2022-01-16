@@ -21,6 +21,53 @@ total_food = "bone-3.png"
 clock = pygame.time.Clock()
 clock2 = pygame.time.Clock()
 
+# работа с базой данных
+con = sqlite3.connect("base_yummy.db")
+cur = con.cursor()
+login = input("Введите свой логин:")
+password = input("Введите свой пароль или придумайте его:")
+con.commit()
+# проверка пароля
+if len(password) <= 8:
+    password = input("Ваш пароль слишком короткий")
+checker = 0
+for i in password:
+    if i.isalpha():
+        checker += 1
+if checker == len(password) or checker == 0:
+    password = input("Ваш пароль должен содержать как буквы так и цифры")
+cur.execute("""CREATE TABLE IF NOT EXISTS users (
+            login TEXT,
+             password TEXT, 
+             score BIGINT)""")
+con.commit()
+cur.execute("SELECT login FROM users")
+score = 0
+base = [i[0] for i in cur.fetchall()]
+# поверка есть ли user в базе данных
+if login not in base:
+    cur.execute(f"INSERT INTO users VALUES (?, ?, ?)",
+                (login, password, score))
+    con.commit()
+    con.close()
+else:
+    logins_yes = cur.execute("SELECT password FROM users").fetchall()
+    score_yes = cur.execute("SELECT score FROM users").fetchall()
+    base2 = [i[0] for i in logins_yes]
+    base3 = [i[0] for i in score_yes]
+    cur.execute("SELECT login FROM users")
+    num_log = base.index(login)
+    num_pas = base2.index(password)
+    tek_score = base3[base.index(login)]
+    if password not in base2:
+        password = input("Пароль неверный: ")
+    else:
+        if num_log != num_pas:
+            password = input("Пароль неверный: ")
+        else:
+            print("Игра началась!")
+    cur.close()
+
 
 def load_image(name, color_key=None):
     # функция выгружающая изображения
